@@ -1,9 +1,9 @@
 version: "3.3"
 
 services:
-  objectDetect:
+  object_detect:
     build: .
-    # image: objectDetect
+    # image: object_detect
     ports:
     - "8888:8888"
     entrypoint: python server.py

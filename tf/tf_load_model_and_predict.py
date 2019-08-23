@@ -86,7 +86,7 @@ def predict_by_ssd_mobilenet(sess, ops, img):
     labels = ops[-4]
 
     res = predict(sess, ops, input_dict)
-    print("===================================output===================================")
+    print("============================================output============================================")
     # [print(r, r.shape) for r in res]
     num_detections = int(res[3])
     detection_boxes = res[0][0][:num_detections]
@@ -113,19 +113,85 @@ def predict_by_phone_inference(sess, ops, img):
     labels = ops[-4]
 
     res = predict(sess, ops, input_dict)
-    print("===================================output===================================")
+    print("============================================output============================================")
     # [print(r, r.shape) for r in res]
-    num_detections = int(res[3])
+    detection_scores = [s for s in res[2][0] if s > 0.5]
+    num_detections = len(detection_scores)
+    # num_detections = int(res[3])
     detection_boxes = res[0][0][:num_detections]
     detection_classes = res[1][0][:num_detections]
     detection_labels = np.array(labels)[list(map(lambda c: int(c), detection_classes))]
-    detection_scores = res[2][0][:num_detections]
+    # detection_scores = res[2][0][:num_detections]
     print("detection_boxes: {}".format(detection_boxes))
     print("detection_classes: {}".format(detection_classes))
     print("detection_labels: {}".format(detection_labels))
     print("detection_scores: {}".format(detection_scores))
     print("num_detections: {}".format(num_detections))
     return detection_labels, detection_classes, detection_scores, detection_boxes
+
+
+def load_screen_inference(model_dir):
+    model_name = "screen_inference_graph"
+    output_names = ["detection_boxes", "detection_classes", "detection_scores", "num_detections"]
+    labels_file = "screen_labels_list.txt"
+    return load_model(model_dir, model_name, output_names, labels_file)
+
+
+def predict_by_screen_inference(sess, ops, img):
+    input_dict = {"image_tensor": np.reshape(img, [1] + list(img.shape))}
+    labels = ops[-4]
+
+    res = predict(sess, ops, input_dict)
+    print("============================================output============================================")
+    # [print(r, r.shape) for r in res]
+    detection_scores = [s for s in res[2][0] if s > 0.5]
+    num_detections = len(detection_scores)
+    # num_detections = int(res[3])
+    detection_boxes = res[0][0][:num_detections]
+    detection_classes = res[1][0][:num_detections]
+    detection_labels = np.array(labels)[list(map(lambda c: int(c), detection_classes))]
+    # detection_scores = res[2][0][:num_detections]
+    print("detection_boxes: {}".format(detection_boxes))
+    print("detection_classes: {}".format(detection_classes))
+    print("detection_labels: {}".format(detection_labels))
+    print("detection_scores: {}".format(detection_scores))
+    print("num_detections: {}".format(num_detections))
+    return detection_labels, detection_classes, detection_scores, detection_boxes
+
+
+def label_image(img, model_dir):
+    sess, ops = load_inception_model(model_dir)
+    res = predict_by_inception(sess, ops, img)
+    labels = ops[-4]
+    print("============================================output============================================")
+    max_idx = int(np.argmax(res[0][0]))
+    print(res, res[0].shape, max_idx)
+    print(labels[max_idx], res[0][0][max_idx] * 100)
+
+
+def object_detect(img, model_dir, save_dir, image_name):
+    sess, ops = load_ssd_mobilenet_model(model_dir)
+    detection_labels, detection_classes, detection_scores, detection_boxes = predict_by_ssd_mobilenet(sess, ops, img)
+    save_path = str(os.path.join(save_dir, image_name.rsplit('.', 1)[0]) +
+                    "_boxed." + str(image_name.rsplit('.', 1)[1]))
+    vs.plt_bboxes(img, detection_labels, detection_classes, detection_scores, detection_boxes, save_path)
+
+
+def phone_screen_detect(img, model_dir, save_dir, image_name):
+    sess, ops = load_phone_inference(model_dir)
+    detection_labels, detection_classes, detection_scores, detection_boxes = \
+        predict_by_phone_inference(sess, ops, img)
+    save_path = str(os.path.join(save_dir, image_name.rsplit('.', 1)[0]) +
+                    "_boxed." + str(image_name.rsplit('.', 1)[1]))
+    if len(detection_scores) > 0:
+        sess, ops = load_screen_inference(model_dir)
+        d_labels, d_classes, d_scores, d_boxes = predict_by_screen_inference(sess, ops, img)
+        if len(d_scores) == 0:
+            detection_labels = ["非碎屏" + l for l in detection_labels]
+        else:
+            detection_labels, detection_classes, detection_scores, detection_boxes = \
+                d_labels, d_classes, d_scores, d_boxes
+    vs.plt_bboxes(img, detection_labels, detection_classes, detection_scores, detection_boxes, save_path)
 
 
 def main():
@@ -135,28 +201,14 @@ def main():
     img_dir = os.path.join(root_path, os.path.join("data", "image"))
     save_dir = os.path.join(root_path, os.path.join(os.path.join("static", "upload"), "img"))
     image_names = sorted(os.listdir(img_dir))
-    # print(image_names)
-    image_name = image_names[-1]
+    print("image_names: {}".format(image_names))
+    image_name = image_names[9]
     img = mpimg.imread(os.path.join(img_dir, image_name))
+    print("img: {}".format(img))
 
-    # sess, ops = load_inception_model(model_dir)
-    # res = predict_by_inception(sess, ops, img)
-    # labels = ops[-4]
-    # print("===================================output===================================")
-    # max_idx = np.argmax(res[0][0])
-    # print(res, res[0].shape, max_idx)
-    # print(labels[max_idx], res[0][0][max_idx] * 100)
-
-    sess, ops = load_ssd_mobilenet_model(model_dir)
-    detection_labels, detection_classes, detection_scores, detection_boxes = \
-        predict_by_ssd_mobilenet(sess, ops, img)
-
-    # sess, ops = load_phone_inference(model_dir)
-    # detection_labels, detection_classes, detection_scores, detection_boxes = \
-    #     predict_by_phone_inference(sess, ops, img)
-
-    save_path = os.path.join(save_dir, image_name.rsplit('.', 1)[0] + "_boxed." + image_name.rsplit('.', 1)[1])
-    vs.plt_bboxes(img, detection_labels, detection_classes, detection_scores, detection_boxes, save_path)
+    # label_image(img, model_dir)
+    # object_detect(img, model_dir, save_dir, image_name)
+    phone_screen_detect(img, model_dir, save_dir, image_name)
 
 
 if __name__ == "__main__":

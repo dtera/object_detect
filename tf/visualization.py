@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-import cv2
 import random
 
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
+import cv2
 import matplotlib.cm as mpcm
+import matplotlib.pyplot as plt
+
+plt.rcParams['font.sans-serif'] = ['SimHei']
+plt.rcParams['axes.unicode_minus'] = False
 
 
 # =========================================================================== #
-# Some colormaps.
+# Some color_maps.
 # =========================================================================== #
 def colors_sub_select(colors, num_classes=21):
     dt = len(colors) // num_classes
@@ -87,7 +89,7 @@ def bboxes_draw_on_img(img, classes, scores, bboxes, colors, thickness=2):
 def plt_bboxes(img, labels, classes, scores, bboxes, save_path, figsize=(10, 10), linewidth=1.5):
     """Visualize bounding boxes. Largely inspired by SSD-MXNET!
     """
-    fig = plt.figure(figsize=figsize)
+    plt.figure(figsize=figsize)
     plt.imshow(img)
     height = img.shape[0]
     width = img.shape[1]

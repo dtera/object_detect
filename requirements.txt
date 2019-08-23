@@ -1,5 +1,8 @@
+pandas
+Pillow
 tensorflow==1.14.0
 numpy
 matplotlib
+opencv-python
 Flask
 requests
