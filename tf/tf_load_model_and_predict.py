@@ -38,7 +38,7 @@ def load_model(model_dir, model_name, output_names, labels_file,
         ops.append(output_tensor)
     # print("ops: {}".format(ops))
 
-    with open(os.path.join(model_dir, labels_file), "r") as f:
+    with open(os.path.join(model_dir, labels_file), "r", encoding="gbk") as f:
         labels = f.readlines()
         ops.append(list(map(lambda l: l.rstrip('\n'), labels)))
         # print(labels, len(labels))

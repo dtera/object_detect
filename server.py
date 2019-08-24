@@ -1,8 +1,8 @@
 import os
 
 import matplotlib.image as mpimg
-import pandas as pd
-from flask import Flask, request, render_template
+# import pandas as pd
+from flask import Flask, request, render_template, jsonify
 
 from tf import tf_load_model_and_predict as lmp, visualization as vs
 
@@ -16,6 +16,7 @@ sess2, ops2 = lmp.load_screen_inference(model_dir)
 UPLOAD_FOLDER = os.path.join(root_path, "static/upload/img")
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'bmp', 'ico', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['JSON_AS_ASCII'] = False
 
 
 def allowed_file(file_name):
@@ -67,10 +68,12 @@ def phone_detect_result():
             img_file.save(upload_path)
             img = mpimg.imread(upload_path)
             detection_boxes, detection_classes, detection_labels, detection_scores = get_phone_detect_result(img)
-            # detection_boxes = list(map(lambda b: b.tolist(), detection_scores))
+            detection_boxes = list(map(lambda b: b.tolist(), detection_boxes))
+            detection_classes = list(map(lambda c: float(c), detection_classes))
+            detection_scores = list(map(lambda s: float(s), detection_scores))
             data = {"detection_boxes": detection_boxes, "detection_classes": detection_classes,
-                    "detection_labels": detection_labels, "detection_scores": detection_scores}
-            return pd.Series(data).to_json(force_ascii=False)
+                    "detection_labels": detection_labels.tolist(), "detection_scores": detection_scores}
+            return jsonify(data)  # pd.Series(data).to_json(force_ascii=False)
     return ""
 
 
