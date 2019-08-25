@@ -72,7 +72,7 @@ def phone_detect_result():
             detection_classes = list(map(lambda c: float(c), detection_classes))
             detection_scores = list(map(lambda s: float(s), detection_scores))
             data = {"detection_boxes": detection_boxes, "detection_classes": detection_classes,
-                    "detection_labels": detection_labels.tolist(), "detection_scores": detection_scores}
+                    "detection_labels": list(detection_labels), "detection_scores": detection_scores}
             return jsonify(data)  # pd.Series(data).to_json(force_ascii=False)
     return ""
 
