@@ -63,7 +63,7 @@ def index():
 def phone_detect_result():
     if request.method == "POST":
         img_file = request.files["img"]
-        if img_file and allowed_file(img_file.filename):
+        if img_file:
             upload_path = os.path.join(app.config['UPLOAD_FOLDER'], img_file.filename)
             img_file.save(upload_path)
             img = mpimg.imread(upload_path)
