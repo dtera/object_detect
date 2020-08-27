@@ -1,5 +1,5 @@
 Pillow
-tensorflow==1.15.2
+tensorflow
 numpy
 matplotlib
 opencv-python
